@@ -4,5 +4,8 @@ This is the static code generation variant of the Node examples. Code in these e
 cd ../../protos
 npm install -g grpc-tools
 grpc_tools_node_protoc --js_out=import_style=commonjs,binary:../node/static_codegen/ --grpc_out=../node/static_codegen --plugin=protoc-gen-grpc=`which grpc_tools_node_protoc_plugin` helloworld.proto
+
 grpc_tools_node_protoc --js_out=import_style=commonjs,binary:../node/static_codegen/route_guide/ --grpc_out=../node/static_codegen/route_guide/ --plugin=protoc-gen-grpc=`which grpc_tools_node_protoc_plugin` route_guide.proto
 ```
+
+[执行下面命令生成的](helloworld_grpc_pb.js) 改 require('grpc') => require('@grpc/grpc-js')

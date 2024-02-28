@@ -19,15 +19,21 @@
 var messages = require('./helloworld_pb');
 var services = require('./helloworld_grpc_pb');
 
-var grpc = require('grpc');
+var grpc = require('@grpc/grpc-js');
 
 /**
  * Implements the SayHello RPC method.
  */
 function sayHello(call, callback) {
-  var reply = new messages.HelloReply();
-  reply.setMessage('Hello ' + call.request.getName());
-  callback(null, reply);
+    var reply = new messages.HelloReply();
+    reply.setMessage('Hello ' + call.request.getName());
+    callback(null, reply);
+}
+
+function sayHelloAgain(call, callback) {
+    var reply = new messages.HelloReply();
+    reply.setMessage('Hello again ' + call.request.getName());
+    callback(null, reply);
 }
 
 /**
@@ -35,10 +41,18 @@ function sayHello(call, callback) {
  * sample server port
  */
 function main() {
-  var server = new grpc.Server();
-  server.addService(services.GreeterService, {sayHello: sayHello});
-  server.bind('0.0.0.0:50051', grpc.ServerCredentials.createInsecure());
-  server.start();
+    var server = new grpc.Server();
+    server.addService(services.GreeterService, { sayHello: sayHello, sayHelloAgain: sayHelloAgain });
+
+    server.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), (err, port) => {
+        if (err) {
+            console.error('Failed to bind:', err);
+            return;
+        }
+        console.log('Server running on port:', port);
+    })
+    // server.bind('0.0.0.0:50051', grpc.ServerCredentials.createInsecure());
+    // server.start();
 }
 
 main();
