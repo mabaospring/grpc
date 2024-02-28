@@ -148,3 +148,4 @@ cmake-build-debug/
 # Benchmark outputs
 BenchmarkDotNet.Artifacts/
 examples/node/package-lock.json
+examples/node/.vscode/launch.json

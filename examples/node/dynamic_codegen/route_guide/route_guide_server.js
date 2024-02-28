@@ -22,15 +22,16 @@ var fs = require('fs');
 var parseArgs = require('minimist');
 var path = require('path');
 var _ = require('lodash');
-var grpc = require('grpc');
+var grpc = require('@grpc/grpc-js');
 var protoLoader = require('@grpc/proto-loader');
 var packageDefinition = protoLoader.loadSync(
     PROTO_PATH,
-    {keepCase: true,
-     longs: String,
-     enums: String,
-     defaults: true,
-     oneofs: true
+    {
+        keepCase: true,
+        longs: String,
+        enums: String,
+        defaults: true,
+        oneofs: true
     });
 var routeguide = grpc.loadPackageDefinition(packageDefinition).routeguide;
 
@@ -55,21 +56,21 @@ var feature_list = [];
  *     indicates no feature
  */
 function checkFeature(point) {
-  var feature;
-  // Check if there is already a feature object for the given point
-  for (var i = 0; i < feature_list.length; i++) {
-    feature = feature_list[i];
-    if (feature.location.latitude === point.latitude &&
-        feature.location.longitude === point.longitude) {
-      return feature;
+    var feature;
+    // Check if there is already a feature object for the given point
+    for (var i = 0; i < feature_list.length; i++) {
+        feature = feature_list[i];
+        if (feature.location.latitude === point.latitude &&
+            feature.location.longitude === point.longitude) {
+            return feature;
+        }
     }
-  }
-  var name = '';
-  feature = {
-    name: name,
-    location: point
-  };
-  return feature;
+    var name = '';
+    feature = {
+        name: name,
+        location: point
+    };
+    return feature;
 }
 
 /**
@@ -79,7 +80,7 @@ function checkFeature(point) {
  * @param {function(Error, feature)} callback Response callback
  */
 function getFeature(call, callback) {
-  callback(null, checkFeature(call.request));
+    callback(null, checkFeature(call.request));
 }
 
 /**
@@ -89,25 +90,25 @@ function getFeature(call, callback) {
  *     request property for the request value.
  */
 function listFeatures(call) {
-  var lo = call.request.lo;
-  var hi = call.request.hi;
-  var left = _.min([lo.longitude, hi.longitude]);
-  var right = _.max([lo.longitude, hi.longitude]);
-  var top = _.max([lo.latitude, hi.latitude]);
-  var bottom = _.min([lo.latitude, hi.latitude]);
-  // For each feature, check if it is in the given bounding box
-  _.each(feature_list, function(feature) {
-    if (feature.name === '') {
-      return;
-    }
-    if (feature.location.longitude >= left &&
-        feature.location.longitude <= right &&
-        feature.location.latitude >= bottom &&
-        feature.location.latitude <= top) {
-      call.write(feature);
-    }
-  });
-  call.end();
+    var lo = call.request.lo;
+    var hi = call.request.hi;
+    var left = _.min([lo.longitude, hi.longitude]);
+    var right = _.max([lo.longitude, hi.longitude]);
+    var top = _.max([lo.latitude, hi.latitude]);
+    var bottom = _.min([lo.latitude, hi.latitude]);
+    // For each feature, check if it is in the given bounding box
+    _.each(feature_list, function (feature) {
+        if (feature.name === '') {
+            return;
+        }
+        if (feature.location.longitude >= left &&
+            feature.location.longitude <= right &&
+            feature.location.latitude >= bottom &&
+            feature.location.latitude <= top) {
+            call.write(feature);
+        }
+    });
+    call.end();
 }
 
 /**
@@ -118,22 +119,22 @@ function listFeatures(call) {
  * @return The distance between the points in meters
  */
 function getDistance(start, end) {
-  function toRadians(num) {
-    return num * Math.PI / 180;
-  }
-  var R = 6371000;  // earth radius in metres
-  var lat1 = toRadians(start.latitude / COORD_FACTOR);
-  var lat2 = toRadians(end.latitude / COORD_FACTOR);
-  var lon1 = toRadians(start.longitude / COORD_FACTOR);
-  var lon2 = toRadians(end.longitude / COORD_FACTOR);
+    function toRadians(num) {
+        return num * Math.PI / 180;
+    }
+    var R = 6371000;  // earth radius in metres
+    var lat1 = toRadians(start.latitude / COORD_FACTOR);
+    var lat2 = toRadians(end.latitude / COORD_FACTOR);
+    var lon1 = toRadians(start.longitude / COORD_FACTOR);
+    var lon2 = toRadians(end.longitude / COORD_FACTOR);
 
-  var deltalat = lat2-lat1;
-  var deltalon = lon2-lon1;
-  var a = Math.sin(deltalat/2) * Math.sin(deltalat/2) +
-      Math.cos(lat1) * Math.cos(lat2) *
-      Math.sin(deltalon/2) * Math.sin(deltalon/2);
-  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
+    var deltalat = lat2 - lat1;
+    var deltalon = lon2 - lon1;
+    var a = Math.sin(deltalat / 2) * Math.sin(deltalat / 2) +
+        Math.cos(lat1) * Math.cos(lat2) *
+        Math.sin(deltalon / 2) * Math.sin(deltalon / 2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
 }
 
 /**
@@ -145,34 +146,34 @@ function getDistance(start, end) {
  *     response to
  */
 function recordRoute(call, callback) {
-  var point_count = 0;
-  var feature_count = 0;
-  var distance = 0;
-  var previous = null;
-  // Start a timer
-  var start_time = process.hrtime();
-  call.on('data', function(point) {
-    point_count += 1;
-    if (checkFeature(point).name !== '') {
-      feature_count += 1;
-    }
-    /* For each point after the first, add the incremental distance from the
-     * previous point to the total distance value */
-    if (previous != null) {
-      distance += getDistance(previous, point);
-    }
-    previous = point;
-  });
-  call.on('end', function() {
-    callback(null, {
-      point_count: point_count,
-      feature_count: feature_count,
-      // Cast the distance to an integer
-      distance: distance|0,
-      // End the timer
-      elapsed_time: process.hrtime(start_time)[0]
+    var point_count = 0;
+    var feature_count = 0;
+    var distance = 0;
+    var previous = null;
+    // Start a timer
+    var start_time = process.hrtime();
+    call.on('data', function (point) {
+        point_count += 1;
+        if (checkFeature(point).name !== '') {
+            feature_count += 1;
+        }
+        /* For each point after the first, add the incremental distance from the
+         * previous point to the total distance value */
+        if (previous != null) {
+            distance += getDistance(previous, point);
+        }
+        previous = point;
     });
-  });
+    call.on('end', function () {
+        callback(null, {
+            point_count: point_count,
+            feature_count: feature_count,
+            // Cast the distance to an integer
+            distance: distance | 0,
+            // End the timer
+            elapsed_time: process.hrtime(start_time)[0]
+        });
+    });
 }
 
 var route_notes = {};
@@ -183,7 +184,7 @@ var route_notes = {};
  * @return {string} The key for an object
  */
 function pointKey(point) {
-  return point.latitude + ' ' + point.longitude;
+    return point.latitude + ' ' + point.longitude;
 }
 
 /**
@@ -192,23 +193,23 @@ function pointKey(point) {
  * @param {Duplex} call The stream for incoming and outgoing messages
  */
 function routeChat(call) {
-  call.on('data', function(note) {
-    var key = pointKey(note.location);
-    /* For each note sent, respond with all previous notes that correspond to
-     * the same point */
-    if (route_notes.hasOwnProperty(key)) {
-      _.each(route_notes[key], function(note) {
-        call.write(note);
-      });
-    } else {
-      route_notes[key] = [];
-    }
-    // Then add the new note to the list
-    route_notes[key].push(JSON.parse(JSON.stringify(note)));
-  });
-  call.on('end', function() {
-    call.end();
-  });
+    call.on('data', function (note) {
+        var key = pointKey(note.location);
+        /* For each note sent, respond with all previous notes that correspond to
+         * the same point */
+        if (route_notes.hasOwnProperty(key)) {
+            _.each(route_notes[key], function (note) {
+                call.write(note);
+            });
+        } else {
+            route_notes[key] = [];
+        }
+        // Then add the new note to the list
+        route_notes[key].push(JSON.parse(JSON.stringify(note)));
+    });
+    call.on('end', function () {
+        call.end();
+    });
 }
 
 /**
@@ -217,28 +218,38 @@ function routeChat(call) {
  * @return {Server} The new server object
  */
 function getServer() {
-  var server = new grpc.Server();
-  server.addProtoService(routeguide.RouteGuide.service, {
-    getFeature: getFeature,
-    listFeatures: listFeatures,
-    recordRoute: recordRoute,
-    routeChat: routeChat
-  });
-  return server;
+    var server = new grpc.Server();
+    // addProtoService
+    server.addService(routeguide.RouteGuide.service, {
+        getFeature: getFeature,
+        listFeatures: listFeatures,
+        recordRoute: recordRoute,
+        routeChat: routeChat
+    });
+    return server;
 }
 
 if (require.main === module) {
-  // If this is run as a script, start a server on an unused port
-  var routeServer = getServer();
-  routeServer.bind('0.0.0.0:50051', grpc.ServerCredentials.createInsecure());
-  var argv = parseArgs(process.argv, {
-    string: 'db_path'
-  });
-  fs.readFile(path.resolve(argv.db_path), function(err, data) {
-    if (err) throw err;
-    feature_list = JSON.parse(data);
-    routeServer.start();
-  });
+    // If this is run as a script, start a server on an unused port
+    var routeServer = getServer();
+    routeServer.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), (err, port) => {
+        if (err) {
+            console.error('Failed to bind:', err);
+            return;
+        }
+        console.log('Server running on port:', port);
+    });
+    var argv = parseArgs(process.argv, {
+        string: 'db_path'
+    });
+    if (argv.db_path === undefined) {
+        argv.db_path = __dirname + "/route_guide_db.json";
+    }
+    fs.readFile(path.resolve(argv.db_path), function (err, data) {
+        if (err) throw err;
+        feature_list = JSON.parse(data);
+        routeServer.start();
+    });
 }
 
 exports.getServer = getServer;

@@ -8,4 +8,5 @@ grpc_tools_node_protoc --js_out=import_style=commonjs,binary:../node/static_code
 grpc_tools_node_protoc --js_out=import_style=commonjs,binary:../node/static_codegen/route_guide/ --grpc_out=../node/static_codegen/route_guide/ --plugin=protoc-gen-grpc=`which grpc_tools_node_protoc_plugin` route_guide.proto
 ```
 
-[执行命令生成 helloworld_grpc_pb.js](helloworld_grpc_pb.js) 改 require('grpc') => require('@grpc/grpc-js')
+执行命令生成 helloworld_grpc_pb.js 改 require('grpc') => require('@grpc/grpc-js')
+同类引入都要改
