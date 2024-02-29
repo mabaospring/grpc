@@ -19,6 +19,7 @@ function sayHelloAgain(call, callback) {
 
 function main() {
     let server = new grpc.Server();
+
     server.addService(services.GreeterService, {
         sayHello: sayHello,
         sayHelloAgain: sayHelloAgain
