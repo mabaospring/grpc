@@ -60,8 +60,6 @@ function main() {
         }
         console.log('Server running on port:', port);
     });
-
-
 }
 
 main();

@@ -242,6 +242,7 @@ if (require.main === module) {
     var argv = parseArgs(process.argv, {
         string: 'db_path'
     });
+
     if (argv.db_path === undefined) {
         argv.db_path = __dirname + "/route_guide_db.json";
     }

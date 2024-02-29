@@ -45,4 +45,5 @@ You can find a more detailed tutorial in [gRPC Basics: Node.js][]
 [Install gRPC Node]: ../../src/node
 [gRPC Basics: Node.js]: https://grpc.io/docs/tutorials/basic/node.html
 
-[参考资料](https://doc.oschina.net/grpc?t=60135)
+[参考资料 1](https://doc.oschina.net/grpc?t=60135)
+[参考资料 2](https://www.tizi365.com/archives/403.html)

@@ -8,5 +8,9 @@
     "google-protobuf": "^3.0.0",
     "lodash": "^4.6.1",
     "minimist": "^1.2.0"
+  },
+  "devDependencies": {
+    "grpc_tools_node_protoc_ts": "^5.3.3",
+    "grpc-tools": "^1.12.4"
   }
 }
