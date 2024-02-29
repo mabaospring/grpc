@@ -10,6 +10,7 @@ const main = () => {
         grpc.credentials.createInsecure());
 
     let request = new messages.HelloRequest();
+
     let user;
     if (process.argv.length >= 3) {
         user = process.argv[2];
